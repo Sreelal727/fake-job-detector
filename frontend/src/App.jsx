@@ -107,10 +107,18 @@ function AnalyzerPage() {
     return { __html: newText };
   };
 
-  const getScoreColor = (score) => {
-    if (score >= 66) return '#ef4444';
-    if (score >= 35) return '#f59e0b';
-    return '#22c55e';
+  // UI-only mapping. Backend `score` is fake-probability × 100 (high = fake).
+  // We display its inverse so high = genuine, matching the user's mental model.
+  const toDisplayScore = (score) => 100 - score;
+
+  // Colour thresholds on the *displayed* (genuineness) score:
+  //   >= 70  green (genuine)
+  //   50-70  amber (suspicious)
+  //   < 50   red   (fake)
+  const getScoreColor = (displayScore) => {
+    if (displayScore >= 70) return '#22c55e';
+    if (displayScore >= 50) return '#f59e0b';
+    return '#ef4444';
   };
 
   return (
@@ -181,18 +189,18 @@ function AnalyzerPage() {
                 {result.prediction}
               </div>
               <div className="score-display">
-                <div className="score-label">FRAUD PROBABILITY</div>
+                <div className="score-label">AUTHENTICITY SCORE</div>
                 <div className="score-bar-track">
                   <div
                     className="score-bar-fill"
                     style={{
-                      width: `${result.score}%`,
-                      background: `linear-gradient(90deg, ${getScoreColor(result.score)}, ${getScoreColor(result.score)}88)`,
+                      width: `${toDisplayScore(result.score)}%`,
+                      background: `linear-gradient(90deg, ${getScoreColor(toDisplayScore(result.score))}, ${getScoreColor(toDisplayScore(result.score))}88)`,
                     }}
                   ></div>
                 </div>
-                <div className="score-number" style={{ color: getScoreColor(result.score) }}>
-                  {result.score}%
+                <div className="score-number" style={{ color: getScoreColor(toDisplayScore(result.score)) }}>
+                  {toDisplayScore(result.score)}%
                 </div>
               </div>
             </div>
